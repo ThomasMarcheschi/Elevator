@@ -1,17 +1,21 @@
 <?php
+require_once './hardware/HardwareInterface.php';
+require_once './hardware/DefaultHardware.php';
 
 class Elevator {
     private $currentFloor;
     private $minFloor;
     private $maxFloor;
     private $doorsOpen;
+    private $hardware;
 
-    public function __construct($minFloor = -1, $maxFloor = 3, $startFloor = 0)
+    public function __construct(HardwareInterface $hardware, $minFloor = -1, $maxFloor = 3, $startFloor = 0)
     {
         $this->minFloor = $minFloor;
         $this->maxFloor = $maxFloor;
         $this->currentFloor = $startFloor;
         $this->doorsOpen = false;
+        $this->hardware = $hardware;
 
     }
 
@@ -34,6 +38,7 @@ class Elevator {
     public function goUp(){
         if($this->currentFloor < $this->maxFloor){
             $this->closeDoors();
+            $this->hardware->goUp();
             $this->currentFloor++;
             return $this->currentFloor;
         }
@@ -43,6 +48,7 @@ class Elevator {
     public function goDown(){
         if($this->currentFloor > $this->minFloor){
             $this->closeDoors();
+            $this->hardware->goDown();
             $this->currentFloor--;
             return $this->currentFloor;
         }else{
@@ -71,13 +77,17 @@ class Elevator {
 
 session_start();
 
+
 if(!isset($_SESSION['elevator'])){
-    $_SESSION['elevator']= new Elevator();
+    $hardware = new DefaultHardware();
+    $_SESSION['elevator']= new Elevator($hardware);
 }
 
 $elevator = $_SESSION['elevator'];
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    header('content-type: application/json');
+
     $floor = $_POST['floor'] ?? null;
     if($floor !== null){
         $currentFloor = $elevator->gotToFloor((int)$floor);

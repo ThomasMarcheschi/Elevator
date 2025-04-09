@@ -44,7 +44,13 @@ document.addEventListener("DOMContentLoaded", function(){
             },
             body: `floor=${targetFloor}`,
         })
-        .then(res => res.json())
+        .then(res => {
+            if(!res.ok){
+                throw new Error(`HTTP error! status: ${res.status}`);
+                
+            }
+            return res.json();
+        })
         .then(data => {
             if(data.currentFloor !== undefined){
                 currentFloor = data.currentFloor;
